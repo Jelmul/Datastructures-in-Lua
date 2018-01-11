@@ -47,7 +47,7 @@ end
 
 function make_heap(array)
     p = divide(n, 2)
-    while array[p] ~= 0 do
+    while p ~= 0 do
         sift_down(array, p)
         p = p - 1
     end
@@ -72,5 +72,5 @@ function peak_heap(array)
 end
     
 make_heap(a)
-print(a)
+print(a[1])
 
