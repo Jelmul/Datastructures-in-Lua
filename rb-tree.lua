@@ -112,7 +112,7 @@ function RBtree:del(i)
         end
 
         if not found then
-            if p.key > i then
+            if p.key < i then -- go to correct child
                 p = p.right
             else
                 p = p.left
@@ -159,7 +159,6 @@ end
 
 function RBtree:delfix(p)
     if p == nil then
-        print("p is nil, what should we do?")
         return
     end
     
@@ -265,6 +264,7 @@ function RBtree:rightrotate(p)
         end
         if p.parent == nil then
             self.root = y
+            y.parent = nil -- fix
         else
             if p == p.parent.left then
                 p.parent.left = y
@@ -305,25 +305,26 @@ function RBtree:search(x)
             return true
         end
         if not found then
-            if p.key < x then
-                p = p.left
-            else
+            if p.key < x then -- go to correct child
                 p = p.right
+            else
+                p = p.left
             end
         end
     end
+    --print(string.format("%s not found", x))
     return false
 end
 
 function RBtree:print(p, i)
-    if p ~= nil and i < 3 then
+    if p ~= nil and i >= 0 then
         left = -1
         right = -1
         if p.left ~= nil then left = p.left.key end
         if p.right ~= nil then right = p.right.key end
         print(string.format("%s has %s left and %s right", p.key, left, right))
-        self:print(p.left, i + 1)
-        self:print(p.right, i + 1)
+        self:print(p.left, i - 1)
+        self:print(p.right, i - 1)
     end
 end
 
@@ -355,6 +356,22 @@ function RBtree:children(p, i)
     end
 end
 
+function RBtree:depth(p)
+    left = 0
+    right = 0
+    if p.left ~= nil then
+        left = self:depth(p.left)
+    end
+    if p.right ~= nil then
+        right = self:depth(p.right)
+    end
+    if left > right then
+        return 1 + left
+    else
+        return 1 + right
+    end
+end
+
 print("Insert")
 tree = RBtree:new()
 for i = 0, 100, 1 do
@@ -363,6 +380,7 @@ end
 
 tree:debug(tree.root)
 
+--[[
 print("Simple test left")
 current = tree.root
 for i = 0, 10, 1 do
@@ -379,17 +397,23 @@ for i = 0, 10, 1 do
       current = current.right
     end
 end
+--]]
 
-print("Del")
-for i = 1, 100, 10 do
-    --print(i)
-    tree:del(i)
-end
+--tree:print(tree.root, 100)
+print("Depth:")
+print(tree:depth(tree.root))
 
 print("Search existing")
-for i = 2, 100, 10 do
+for i = 1, 100, 10 do
     print(tree:search(i))
 end
+
+print("Del")
+tree:debug(tree.root)
+for i = 1, 100, 10 do
+    tree:del(i)
+end
+tree:debug(tree.root)
 
 print("Search deleted")
 for i = 1, 100, 10 do
