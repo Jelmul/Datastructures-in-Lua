@@ -53,6 +53,8 @@ function RBtree:insert(i)
     end
     self.size = self.size + 1
     self:insertfix(n)
+    --print(i)
+    --self:debug(self.root)
 end
 
 function RBtree:insertfix(z)
