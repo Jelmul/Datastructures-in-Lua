@@ -24,15 +24,15 @@ function RBtree:new()
 end
 
 function RBtree:insert(i)
-    n = Node:new()
+    local n = Node:new()
     n.key = i
     if self.root == nil then
         self.root = n
         n.color = 'b'
         n.parent = nil
     else
-        p = self.root
-        parent = p.parent
+        local p = self.root
+        local parent = nil
         while p ~= nil do
             parent = p
             if p.key < i then
@@ -42,7 +42,7 @@ function RBtree:insert(i)
             end
         end
         
-        p = parent -- or not ?
+        p = parent
         n.parent = p
         n.color = 'r'
         if p.key < n.key then
@@ -53,15 +53,13 @@ function RBtree:insert(i)
     end
     self.size = self.size + 1
     self:insertfix(n)
-    --print(i)
-    --self:debug(self.root)
 end
 
 function RBtree:insertfix(z)
     while z ~= self.root and z.parent.color == 'r' do
         if z.parent == z.parent.parent.left then
-            g = z.parent.parent
-            y = g.right
+            local g = z.parent.parent
+            local y = g.right
             if y ~= nil and y.color == 'r' then
                 z.parent.color = 'b'
                 g.color = 'r'
@@ -77,8 +75,8 @@ function RBtree:insertfix(z)
                 self:rightrotate(g)
             end
         else
-            g = z.parent.parent
-            y = g.left
+            local g = z.parent.parent
+            local y = g.left
             if y ~= nil and y.color == 'r' then
                 z.parent.color = 'b'
                 y.color = 'b'
@@ -102,10 +100,10 @@ end
 function RBtree:del(i)
     if self.root == nil then return end
     
-    p = self.root
-    y = nil
-    q = nil
-    found = false
+    local p = self.root
+    local y = nil
+    local q = nil
+    local found = false
 
     while p ~= nil and not found do
         if p.key == i then
@@ -164,7 +162,7 @@ function RBtree:delfix(p)
         return
     end
     
-    s = nil
+    local s = nil
     while p ~= self.root and p.color == 'b' do
         if p.parent.left == p then
             s = p.parent.right
@@ -224,7 +222,7 @@ function RBtree:leftrotate(p)
     if p.right == nil then
         return
     else
-        y = p.right
+        local y = p.right
         if y.left ~= nil then
             p.right = y.left
             y.left.parent = p
@@ -236,7 +234,7 @@ function RBtree:leftrotate(p)
         end
         if p.parent == nil then
             self.root = y
-            y.parent = nil -- fix
+            self.root.parent = nil -- fix
         else
             if p == p.parent.left then
                 p.parent.left = y
@@ -254,7 +252,7 @@ function RBtree:rightrotate(p)
     if p.left == nil then
         return
     else
-        y = p.left
+        local y = p.left
         if y.right ~= nil then
             p.left = y.right
             y.right.parent = p
@@ -280,7 +278,7 @@ function RBtree:rightrotate(p)
 end
 
 function RBtree:successor(p)
-    y = nil
+    local y = nil
     if p.left ~= nil then
         y = p.right
         while y.left ~= nil do
@@ -300,8 +298,8 @@ function RBtree:search(x)
       print('root == nil')
         return false
     end
-    p = self.root
-    found = false
+    local p = self.root
+    local found = false
     while p ~= nil and not found do
         if p.key == x then
             return true
@@ -320,8 +318,8 @@ end
 
 function RBtree:print(p, i)
     if p ~= nil and i >= 0 then
-        left = -1
-        right = -1
+        local left = -1
+        local right = -1
         if p.left ~= nil then left = p.left.key end
         if p.right ~= nil then right = p.right.key end
         print(string.format("%s has %s left and %s right", p.key, left, right))
@@ -331,8 +329,8 @@ function RBtree:print(p, i)
 end
 
 function RBtree:debug(p)
-    left = 0
-    right = 0
+    local left = 0
+    local right = 0
     if p.left ~= nil then
         left = self:children(p.left, 0)
     end
@@ -344,7 +342,7 @@ end
 
 function RBtree:children(p, i)
     if i < 100 then
-      count = 1
+      local count = 1
       if p.left ~= nil then
           count = count + self:children(p.left, i + 1)
       end
@@ -359,8 +357,8 @@ function RBtree:children(p, i)
 end
 
 function RBtree:depth(p)
-    left = 0
-    right = 0
+    local left = 0
+    local right = 0
     if p.left ~= nil then
         left = self:depth(p.left)
     end
@@ -375,7 +373,7 @@ function RBtree:depth(p)
 end
 
 print("Insert")
-tree = RBtree:new()
+local tree = RBtree:new()
 for i = 0, 100, 1 do
     tree:insert(i)
 end
