@@ -347,11 +347,11 @@ bool RBtree::search(int x)
     }
     return false;
 }
-int main()
+/*int main()
 {
     int ch,y=0;
     RBtree tree;
     for (int i=0; i < 100; i++){
         tree.insert(i);
     }
-}
+} */

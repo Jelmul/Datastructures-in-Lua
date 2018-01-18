@@ -1,7 +1,7 @@
 Node = {}
 Node.__index = Node
 
-function Node:new(key)
+function Node.new(key)
     local node = {}
     setmetatable(node, Node)
     node.key = key
@@ -15,7 +15,7 @@ end
 RBtree = {}
 RBtree.__index = RBtree
 
-function RBtree:new()
+function RBtree.new()
     local tree = {}
     setmetatable(tree, RBtree)
     tree.root = nil
@@ -372,6 +372,8 @@ function RBtree:depth(p)
     end
 end
 
+--[[
+
 print("Insert")
 tree = RBtree:new()
 for i = 0, 100, 1 do
@@ -380,7 +382,6 @@ end
 
 tree:debug(tree.root)
 
---[[
 print("Simple test left")
 current = tree.root
 for i = 0, 10, 1 do
@@ -397,7 +398,6 @@ for i = 0, 10, 1 do
       current = current.right
     end
 end
---]]
 
 --tree:print(tree.root, 100)
 print("Depth:")
@@ -421,3 +421,4 @@ for i = 1, 100, 10 do
 end
 
 print("Done")
+]]
