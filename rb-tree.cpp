@@ -39,8 +39,9 @@ void RBtree::insert(int i)
     n->key = i;
     if(root==NULL)
     {
-        root=new node; // shouldn't this be n with color 'b'?
-        n->parent=NULL;
+        root=new node;
+        root->key = i;
+        root->parent=NULL;
     }
     else
     {
