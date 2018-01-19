@@ -39,7 +39,7 @@ void RBtree::insert(int i)
     node *n = new node;
     n->key = i;
 
-    if(root==NULL)
+    if(root == NULL)
     {
         root = n;
         n->parent = NULL;
