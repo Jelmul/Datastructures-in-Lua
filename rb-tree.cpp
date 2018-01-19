@@ -136,7 +136,6 @@ void RBtree::del(int i)
     node *y = NULL;
     node *q = NULL;
     bool found = false;
-
     while(p != NULL && !found){
         if(p->key == i){
             found = true;
@@ -150,7 +149,6 @@ void RBtree::del(int i)
                 p = p->left;
         }
     }
-
     if(!found)  return;
 
     if(p->left == NULL || p->right == NULL)
@@ -186,7 +184,7 @@ void RBtree::del(int i)
         p->key = y->key;
     }
     if(y->color == 'b'){
-        delfix(q);
+        delfix(p);
     }
 }
 
@@ -367,5 +365,8 @@ int main()
     for (int i=0; i < 10; i++){
         tree.insert(i);
     }
+    tree.del(3);
+    tree.del(4);
     std::cout << tree.search(3) << '\n';
+    std::cout << tree.search(4) << '\n';
 }
