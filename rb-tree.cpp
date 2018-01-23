@@ -8,13 +8,13 @@ void RBtree::insert(int i)
 {
     node *n = new node;
     n->key = i;
+    n->left = NULL;
+    n->right = NULL;
 
     if(root == NULL)
     {
         root = n;
         n->parent = NULL;
-        n->left = NULL;
-        n->right = NULL;
     }
     else
     {
@@ -325,25 +325,4 @@ void postorder(node* p, int indent)
         }
         cout<< p->key << "\n ";
     }
-}
-
-
-int main()
-{
-    RBtree tree;
-
-    tree.insert(1362961854);
-    tree.insert(8891098);
-    tree.insert(392263175);
-    tree.insert(158428306);
-    tree.insert(2074436122);
-    tree.insert(47170999);
-    tree.insert(431826012);
-    tree.insert(1599373168);
-    tree.insert(1769073836);
-    tree.insert(1043058022);
-    tree.insert(234904242);
-    tree.insert(1195856714);
-    cout << tree.search(1769073836) << endl;
-    cout << tree.search(2074436122) << endl;
 }
