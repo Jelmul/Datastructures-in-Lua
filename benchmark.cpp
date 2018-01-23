@@ -4,20 +4,14 @@ extern "C" {
 #include "lauxlib.h"
 }
 
+#include "rb-tree.h"
+
 #include <iostream>
 #include <cstdlib>
+#include <chrono>
 
 using namespace std;
-
-int* create_rbtree_data(int size, int seed)
-{
-  srand(seed);
-  int* data = new int[size];
-  for (int i = 0; i < size; i++) {
-    data[i] = rand();
-  }
-  return data;
-}
+using Clock=std::chrono::high_resolution_clock;
 
 lua_State* lua_create_context(const char* file) {
   lua_State *L = luaL_newstate();
@@ -26,43 +20,143 @@ lua_State* lua_create_context(const char* file) {
   return L;
 }
 
-void lua_rbtree_create(int* contents, int size, lua_State* L)
-{
-  // first, call the function to create a tree
-  lua_getglobal(L, "RBtree");
-  int t = lua_getfield(L, -1, "new");
-  lua_call(L, 0, 1);
-  // next, insert all the elements one by one
-  for (int i = 0; i < size; i++) {
-    lua_getfield(L, -1, "insert");
-    lua_pushvalue(L, -2); // the "self" reference needed for a `:` function
-    lua_pushinteger(L, contents[i]);
-    lua_call(L, 2, 0);
+
+enum Alteration { insertion, deletion };
+
+struct Alteration_action {
+  int key;
+  Alteration action;
+};
+
+void create_rbtree_data(int seed, int* insert_data, int insert_data_size, Alteration_action* alteration_data, int alteration_count, int* query_data, int query_count) {
+  srand(seed);
+  for (int i = 0; i < insert_data_size; i++) {
+    insert_data[i] = rand();
+  }
+  for (int i = 0; i < alteration_count; i++) {
+    int type = rand() % 2;
+    if (type == 0) { // we are adding a new, random value
+      alteration_data[i].action = insertion;
+      alteration_data[i].key = rand();
+    } else { // we are removing a value which was originally in the structure. Possible bug: it gets removed twice.
+      alteration_data[i].action = deletion;
+      alteration_data[i].key = insert_data[rand() % insert_data_size];
+    }
+  }
+  for (int i = 0; i < query_count; i++) {
+    int orig_ratio = 5;
+    int alter_ratio = 2;
+    int random_ratio = 3;
+    int type = rand() % (orig_ratio + alter_ratio + random_ratio);
+    int key;
+    if (type < orig_ratio) { // query for value in original structure
+      key = insert_data[rand() % insert_data_size];
+    } else if (type < alter_ratio) { // query for altered value, either inserted or deleted
+      key = alteration_data[rand() % alteration_count].key;
+    } else { // query for random value, probably not in structure
+      key = rand();
+    }
+    query_data[i] = key;
   }
 }
 
-bool lua_rbtree_find(int value, lua_State* L)
-{
-  lua_getfield(L, -1, "search");
-  lua_pushvalue(L, -2);
-  lua_pushinteger(L, value);
-  lua_call(L, 2, 1);
-  bool b = lua_toboolean(L, -1);
-  lua_pop(L, 1);
-  return b;
+struct Benchmark_result {
+  int insert_time;
+  int alter_time;
+  int query_time;
+};
+
+Benchmark_result benchmark_rbtree_lua(lua_State* L, int* insert_data, int insert_data_size, Alteration_action* alteration_data, int alteration_count, int* query_data, int query_count) {
+  auto t1 = Clock::now();
+  for (int i = 0; i < insert_data_size; i++) {
+    lua_getfield(L, -1, "insert");
+    lua_pushvalue(L, -2);
+    lua_pushinteger(L, insert_data[i]);
+    lua_call(L, 2, 0);
+  }
+  auto t2 = Clock::now();
+  for (int i = 0; i < alteration_count; i++) {
+    if (alteration_data[i].action == insertion) {
+      lua_getfield(L, -1, "insert");
+    } else {
+      lua_getfield(L, -1, "del");
+    }
+    lua_pushvalue(L, -2);
+    lua_pushinteger(L, alteration_data[i].key);
+    lua_call(L, 2, 0);
+  }
+  auto t3 = Clock::now();
+  for (int i = 0; i < query_count; i++) {
+    // TODO: check result sanity??
+    lua_getfield(L, -1, "search");
+    lua_pushvalue(L, -2);
+    lua_pushinteger(L, query_data[i]);
+    lua_call(L, 2, 1);
+    bool b = lua_toboolean(L, -1);
+    lua_pop(L, 1);
+  }
+  auto t4 = Clock::now();
+  Benchmark_result res;
+  res.insert_time = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
+  res.alter_time = std::chrono::duration_cast<std::chrono::nanoseconds>(t3 - t2).count();
+  res.query_time = std::chrono::duration_cast<std::chrono::nanoseconds>(t4 - t3).count();
+  return res;
+}
+
+Benchmark_result benchmark_rbtree_cpp(int* insert_data, int insert_data_size, Alteration_action* alteration_data, int alteration_count, int* query_data, int query_count) {
+  RBtree tree;
+  auto t1 = Clock::now();
+  for (int i = 0; i < insert_data_size; i++) {
+    tree.insert(insert_data[i]);
+  }
+  auto t2 = Clock::now();
+  for (int i = 0; i < alteration_count; i++) {
+    if (alteration_data[i].action == insertion) {
+      tree.insert(alteration_data[i].key);
+    } else {
+      tree.del(alteration_data[i].key);
+    }
+  }
+  auto t3 = Clock::now();
+  for (int i = 0; i < query_count; i++) {
+    bool b = tree.search(query_data[i]);
+  }
+  auto t4 = Clock::now();
+  Benchmark_result res;
+  res.insert_time = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
+  res.alter_time = std::chrono::duration_cast<std::chrono::nanoseconds>(t3 - t2).count();
+  res.query_time = std::chrono::duration_cast<std::chrono::nanoseconds>(t4 - t3).count();
+  return res;
+}
+
+void benchmark_rbtree(int n, int seed) {
+  lua_State *L = lua_create_context("rb-tree.lua");
+
+  int insert_data_size = n;
+  int alteration_count = n * 0.2;
+  int query_count = n * 0.2;
+
+  int* insert_data = new int[insert_data_size];
+  Alteration_action* alteration_data = new Alteration_action[alteration_count];
+  int* query_data = new int[query_count];
+  create_rbtree_data(seed, insert_data, insert_data_size, alteration_data, alteration_count, query_data, query_count);
+
+  Benchmark_result lua_res = benchmark_rbtree_lua(L, insert_data, insert_data_size, alteration_data, alteration_count, query_data, query_count);
+  Benchmark_result cpp_res = benchmark_rbtree_cpp(insert_data, insert_data_size, alteration_data, alteration_count, query_data, query_count);
+
+  printf("Benchmark results (n=%d, s=%d):\n", n, seed);
+  printf("Insertion:\nlua: %d\ncpp: %d\n", lua_res.insert_time, cpp_res.insert_time);
+  printf("Alteration:\nlua: %d\ncpp: %d\n", lua_res.alter_time, cpp_res.alter_time);
+  printf("Query:\nlua: %d\ncpp: %d\n", lua_res.query_time, cpp_res.query_time);
+
+  lua_close(L);
+  delete [] insert_data;
+  delete [] alteration_data;
+  delete [] query_data;
 }
 
 int main()
 {
   int size = 10000;
-  // first, generate test data
-  int* data = create_rbtree_data(size, 0);
-  // load lua code and create a state
-  lua_State* L = lua_create_context("rb-tree.lua");
-  // create the RB tree, leaving it as the top value on the stack, this can be timed
-  lua_rbtree_create(data, size, L);
-
-  // do some cleanup
-  lua_close(L);
-  delete [] data;
+  benchmark_rbtree(size, 0);
 }

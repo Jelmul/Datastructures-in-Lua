@@ -1,38 +1,8 @@
 #include <iostream>
 #include <iomanip>
+#include "rb-tree.h"
 
 using namespace std;
-
-struct node {
-    int key;
-    node *parent;
-    char color;
-    node *left;
-    node *right;
-};
-
-class RBtree
-{
-    public: node *root;
-    int size;
-
-    private:
-    void delfix(node *);
-    void insertfix(node *);
-    node* successor(node *);
-
-    public :
-    RBtree()
-    {
-        root = NULL;
-        size = 0;
-    }
-    void insert(int);
-    void leftrotate(node *);
-    void rightrotate(node *);
-    void del(int);
-    bool search(int);
-};
 
 void RBtree::insert(int i)
 {
@@ -357,7 +327,7 @@ void postorder(node* p, int indent)
     }
 }
 
-
+/*
 int main()
 {
     RBtree tree;
@@ -370,3 +340,4 @@ int main()
     std::cout << tree.search(3) << '\n';
     std::cout << tree.search(4) << '\n';
 }
+*/
