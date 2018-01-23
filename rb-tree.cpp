@@ -165,18 +165,19 @@ void RBtree::delfix(node *p)
     {
         if(p->parent->left == p){
             s = p->parent->right;
-            if(s->color == 'r'){
+            if(s !== NULL && s->color == 'r'){
                 s->color = 'b';
                 p->parent->color = 'r';
                 leftrotate(p->parent);
                 s = p->parent->right;
             }
-            if(s->right->color == 'b' && s->left->color == 'b'){
+            if((s->right == NULL || s->right->color == 'b') && (s->left == NULL || s->left->color == 'b')){
                 s->color = 'r';
                 p = p->parent;
             } else {
-                if(s->right->color == 'b') {
-                    s->left->color = 'b';
+                if(s->right == NULL || s->right->color == 'b') {
+                    if (s->left != NULL )
+                        s->left->color = 'b';
                     s->color = 'r';
                     rightrotate(s);
                     s = p->parent->right;
@@ -189,26 +190,28 @@ void RBtree::delfix(node *p)
             }
         } else {
             s = p->parent->left;
-            if(s->color == 'r') {
+            if(s != NULL && s->color == 'r') {
                 s->color = 'b';
                 p->parent->color = 'r';
                 rightrotate(p->parent);
                 s = p->parent->left;
             }
-            if(s->left->color == 'b' && s->right->color == 'b')
+            if((s->left == NULL || s->left->color == 'b') && (s->right == NULL || s->right->color == 'b'))
             {
                 s->color = 'r';
                 p = p->parent;
             } else {
-                if(s->left->color == 'b') {
-                    s->right->color = 'b';
+                if(s->left == NULL || s->left->color == 'b') {
+                    if (s->right != NULL)
+                        s->right->color = 'b';
                     s->color = 'r';
                     leftrotate(s);
                     s = p->parent->left;
                 }
                 s->color = p->parent->color;
                 p->parent->color = 'b';
-                s->left->color = 'b';
+                if(s->left != NULL)
+                    s->left->color = 'b';
                 rightrotate(p->parent);
                 p = root;
             }
