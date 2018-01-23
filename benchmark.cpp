@@ -143,6 +143,7 @@ Benchmark_result benchmark_rbtree_cpp(int* insert_data, int insert_data_size, Al
 void benchmark_rbtree(int n, int seed) {
   lua_State *L = lua_create_context("rb-tree.lua");
 
+  printf("Benchmarking n=%d, s=%d....\n", n, seed);
   int insert_data_size = n;
   int alteration_count = n * 0.2;
   int query_count = n * 0.2;
@@ -155,7 +156,7 @@ void benchmark_rbtree(int n, int seed) {
   Benchmark_result lua_res = benchmark_rbtree_lua(L, insert_data, insert_data_size, alteration_data, alteration_count, query_data, query_count);
   Benchmark_result cpp_res = benchmark_rbtree_cpp(insert_data, insert_data_size, alteration_data, alteration_count, query_data, query_count);
 
-  printf("Benchmark results (n=%d, s=%d):\n", n, seed);
+  printf("Results (n=%d, s=%d):\n", n, seed);
   printf("Insertion:\nlua: %d\ncpp: %d\n", lua_res.insert_time, cpp_res.insert_time);
   printf("Alteration:\nlua: %d\ncpp: %d\n", lua_res.alter_time, cpp_res.alter_time);
   printf("Query:\nlua: %d\ncpp: %d\n", lua_res.query_time, cpp_res.query_time);
@@ -166,8 +167,24 @@ void benchmark_rbtree(int n, int seed) {
   delete [] query_data;
 }
 
-int main()
+int main(int argc, char* argv[])
 {
-  int size = 10000;
-  benchmark_rbtree(size, 0);
+  int seed;
+  if (argc > 1) {
+    seed = atoi(argv[1]);
+    printf("Seed passed as argument: %d\n", seed);
+  } else {
+    seed = time(0);
+    printf("No seed passed as argument, using time(0) which is %d right now\n", seed);
+  }
+  srand(seed);
+  int sizes[] = {10, 100, 1000, 10000, 100000, 1000000};
+  int num = sizeof(sizes) / sizeof(int);
+  int seeds[num];
+  for (int i = 0; i < num; i++) {
+    seeds[i] = rand();
+  }
+  for(int i = 0; i < num; i++) {
+    benchmark_rbtree(sizes[i], seeds[i]);
+  }
 }
