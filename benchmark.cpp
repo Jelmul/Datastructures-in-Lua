@@ -60,6 +60,24 @@ void create_rbtree_data(int seed, int* insert_data, int insert_data_size, Altera
   }
 }
 
+void dump_rbtree_data(int* insert_data, int insert_data_size, Alteration_action* alteration_data, int alteration_count, int* query_data, int query_count) {
+  printf("RBtree data:\n");
+
+  for (int i = 0; i < insert_data_size; i++) {
+    printf("insert %d\n", insert_data[i]);
+  }
+  for (int i = 0; i < alteration_count; i++) {
+    if (alteration_data[i].action == insertion) {
+      printf("add %d\n", alteration_data[i].key);
+    } else {
+      printf("remove %d\n", alteration_data[i].key);
+    }
+  }
+  for (int i = 0; i < query_count; i++) {
+    printf("query %d\n", query_data[i]);
+  }
+}
+
 struct Benchmark_result {
   int insert_time;
   int alter_time;
@@ -152,6 +170,8 @@ void benchmark_rbtree(int n, int seed) {
   Alteration_action* alteration_data = new Alteration_action[alteration_count];
   int* query_data = new int[query_count];
   create_rbtree_data(seed, insert_data, insert_data_size, alteration_data, alteration_count, query_data, query_count);
+
+  dump_rbtree_data(insert_data, insert_data_size, alteration_data, alteration_count, query_data, query_count);
 
   Benchmark_result lua_res = benchmark_rbtree_lua(L, insert_data, insert_data_size, alteration_data, alteration_count, query_data, query_count);
   Benchmark_result cpp_res = benchmark_rbtree_cpp(insert_data, insert_data_size, alteration_data, alteration_count, query_data, query_count);
