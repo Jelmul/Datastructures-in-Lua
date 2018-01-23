@@ -67,6 +67,10 @@ struct Benchmark_result {
 };
 
 Benchmark_result benchmark_rbtree_lua(lua_State* L, int* insert_data, int insert_data_size, Alteration_action* alteration_data, int alteration_count, int* query_data, int query_count) {
+  lua_getglobal(L, "RBtree");
+  lua_getfield(L, -1, "new");
+  lua_call(L, 0, 1);
+  cerr << "lua: starting benchmark\n";
   auto t1 = Clock::now();
   for (int i = 0; i < insert_data_size; i++) {
     lua_getfield(L, -1, "insert");
@@ -74,6 +78,7 @@ Benchmark_result benchmark_rbtree_lua(lua_State* L, int* insert_data, int insert
     lua_pushinteger(L, insert_data[i]);
     lua_call(L, 2, 0);
   }
+  cerr << "lua: insert done\n";
   auto t2 = Clock::now();
   for (int i = 0; i < alteration_count; i++) {
     if (alteration_data[i].action == insertion) {
@@ -85,6 +90,7 @@ Benchmark_result benchmark_rbtree_lua(lua_State* L, int* insert_data, int insert
     lua_pushinteger(L, alteration_data[i].key);
     lua_call(L, 2, 0);
   }
+  cerr << "lua: alterations done\n";
   auto t3 = Clock::now();
   for (int i = 0; i < query_count; i++) {
     // TODO: check result sanity??
@@ -95,6 +101,7 @@ Benchmark_result benchmark_rbtree_lua(lua_State* L, int* insert_data, int insert
     bool b = lua_toboolean(L, -1);
     lua_pop(L, 1);
   }
+  cerr << "lua: queries done\n";
   auto t4 = Clock::now();
   Benchmark_result res;
   res.insert_time = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
@@ -105,10 +112,12 @@ Benchmark_result benchmark_rbtree_lua(lua_State* L, int* insert_data, int insert
 
 Benchmark_result benchmark_rbtree_cpp(int* insert_data, int insert_data_size, Alteration_action* alteration_data, int alteration_count, int* query_data, int query_count) {
   RBtree tree;
+  cerr << "cpp: starting benchmark\n";
   auto t1 = Clock::now();
   for (int i = 0; i < insert_data_size; i++) {
     tree.insert(insert_data[i]);
   }
+  cerr << "cpp: insert done\n";
   auto t2 = Clock::now();
   for (int i = 0; i < alteration_count; i++) {
     if (alteration_data[i].action == insertion) {
@@ -117,10 +126,12 @@ Benchmark_result benchmark_rbtree_cpp(int* insert_data, int insert_data_size, Al
       tree.del(alteration_data[i].key);
     }
   }
+  cerr << "cpp: alterations done\n";
   auto t3 = Clock::now();
   for (int i = 0; i < query_count; i++) {
     bool b = tree.search(query_data[i]);
   }
+  cerr << "cpp: queries done\n";
   auto t4 = Clock::now();
   Benchmark_result res;
   res.insert_time = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
