@@ -97,65 +97,66 @@ void RBtree::insertfix(node *z)
     root->color='b';
 }
 
-void RBtree::del(int i)
+void RBtree::del(int x)
 {
-    if(root == NULL)  return;
-
-    node *p;
-    p = root;
-    node *y = NULL;
-    node *q = NULL;
-    bool found = false;
-    while(p != NULL && !found){
-        if(p->key == i){
-            found = true;
-            size--;
-        }
-
-        if(!found){
-            if(p->key < i)
-                p = p->right;
-            else
-                p = p->left;
-        }
+     if(root == NULL)
+     {
+           return ;
+     }
+     node *p;
+     p = root;
+     node *y = NULL;
+     node *q = NULL;
+     int found = 0;
+     while(p != NULL && found == 0)
+     {
+           if(p->key == x)
+               found = 1;
+           if(found == 0)
+           {
+                 if(p->key < x)
+                    p = p->right;
+                 else
+                    p = p->left;
+           }
+     }
+     if(found == 0){
+        return ;
     }
-    if(!found)  return;
-
-    if(p->left == NULL || p->right == NULL)
-        y = p;
-    else
-        y = successor(p);
-    if(y->left != NULL){
-        q = y->left;
-    }
-    else
-    {
-        if(y->right != NULL){
-            q = y->right;
-        }
-        else{
-            q = NULL;
-        }
-    }
-    if(q != NULL){
-        q->parent = y->parent;
-    }
-    if(y->parent == NULL){
-        root = q;
-    } else {
-        if(y == y->parent->left){
-            y->parent->left = q;
-        } else {
-            y->parent->right = q;
-        }
-    }
-    if(y != p){
-        p->color = y->color;
-        p->key = y->key;
-    }
-    if(y->color == 'b'){
-        delfix(p);
-    }
+     else
+     {
+         if(p->left == NULL || p->right == NULL)
+              y = p;
+         else
+              y = successor(p);
+         if(y->left != NULL)
+              q = y->left;
+         else
+         {
+              if(y->right != NULL)
+                   q = y->right;
+              else
+                   q = NULL;
+         }
+         if(q != NULL)
+              q->parent = y->parent;
+         if(y->parent == NULL)
+              root = q;
+         else
+         {
+             if(y == y->parent->left)
+                y->parent->left = q;
+             else
+                y->parent->right = q;
+         }
+         if(y != p)
+         {
+             p->color = y->color;
+             p->key = y->key;
+         }
+         if(y->color =='b')
+             delfix(q);
+     }
 }
 
 void RBtree::delfix(node *p)
@@ -165,7 +166,7 @@ void RBtree::delfix(node *p)
     {
         if(p->parent->left == p){
             s = p->parent->right;
-            if(s !== NULL && s->color == 'r'){
+            if(s != NULL && s->color == 'r'){
                 s->color = 'b';
                 p->parent->color = 'r';
                 leftrotate(p->parent);
@@ -328,4 +329,24 @@ void postorder(node* p, int indent)
         }
         cout<< p->key << "\n ";
     }
+}
+
+int main()
+{
+    RBtree tree;
+
+    tree.insert(1848941308);
+    tree.insert(764856362);
+    tree.insert(539942263);
+    tree.insert(2037992462);
+    tree.insert(1383206370);
+    tree.insert(654304032);
+    tree.insert(193267934);
+    tree.insert(2011813845);
+    tree.insert(1292974003);
+    tree.insert(615996253);
+    tree.insert(742308901);
+    tree.del(193267934);
+    cout << tree.search(193267934) << endl;
+
 }
