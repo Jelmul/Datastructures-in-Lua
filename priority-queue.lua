@@ -1,5 +1,4 @@
 -- Set up
-a = {3, 20, 11, 15, 33, 2, 50}
 n = 7
 
 -- Priority queue class
@@ -98,7 +97,9 @@ function peak_heap(array)
     return array[1]
 end
     
--- Testing     
+-- Testing
+--[[
+a = {3, 20, 11, 15, 33, 2, 50}
 test = PriorityQueue:create(a)
 print(test:top())
 print(test:pop())
@@ -106,3 +107,4 @@ test:push(10000)
 print(test:top())
 print(test:pop())
 print("test")
+]]
