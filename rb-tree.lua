@@ -26,6 +26,8 @@ end
 function RBtree:insert(i)
     local n = Node:new()
     n.key = i
+    n.left = nil
+    n.right = nil
     if self.root == nil then
         self.root = n
         n.color = 'b'
@@ -163,20 +165,23 @@ function RBtree:delfix(p)
     end
     
     local s = nil
-    while p ~= self.root and p.color == 'b' do
+    while p~=nil and p ~= self.root and p.color == 'b' do
         if p.parent.left == p then
             s = p.parent.right
-            if s.color == 'r' then
+            if s~=nil and s.color == 'r' then
                 s.color = 'b'
                 p.parent.color = 'r'
                 self:leftrotate(p.parent)
                 s = p.parent.right
             end
-            if s.right.color == 'b' and s.left.color == 'b' then
+            if s==nil then
+                break
+            end
+            if (s.right == nil or s.right.color == 'b') and (s.left == nil or s.left.color == 'b') then
                 s.color = 'r'
                 p = p.parent
             else
-                if s.right.color == 'b' then
+                if  s.right == nil or s.right.color == 'b' then
                     s.left.color = 'b'
                     s.color = 'r'
                     self:rightrotate(s)
@@ -190,17 +195,20 @@ function RBtree:delfix(p)
             end
         else
             s = p.parent.left
-            if s.color == 'r' then
+            if s ~= nil and s.color == 'r' then
                 s.color = 'b'
                 p.parent.color = 'r'
                 self:rightrotate(p.parent)
                 s = p.parent.left
             end
-            if s.left.color == 'b' and s.right.color == 'b' then
+            if s==nil then
+                break
+            end
+            if (s.left == nil or s.left.color == 'b') and (s.right == nil or s.right.color == 'b') then
                 s.color = 'r'
                 p = p.parent
             else
-                if s.left.color == 'b' then
+                if s.left == nil or s.left.color == 'b' then
                     s.right.color = 'b'
                     s.color = 'r'
                     self:leftrotate(s)
@@ -208,7 +216,9 @@ function RBtree:delfix(p)
                 end
                 s.color = p.parent.color
                 p.parent.color = 'b'
-                s.left.color = 'b'
+                if s.left ~= nil then
+                    s.left.color = 'b'
+                end
                 self:rightrotate(p.parent)
                 p = self.root
             end
