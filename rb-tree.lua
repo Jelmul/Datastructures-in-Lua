@@ -1,3 +1,5 @@
+local setmetatable = setmetatable
+
 Node = {key = nil, parent = nil, color = nil, left = nil, right = nil}
 Node.__index = Node
 
