@@ -18,7 +18,7 @@ void RBtree::insert(int i)
         n->parent = NULL;
     }
     else
-    {   
+    {
         node *p = root;
         node *p_parent = NULL;
         while (p != NULL){
@@ -30,8 +30,7 @@ void RBtree::insert(int i)
             }
         }
 
-        p = p_parent;
-        n->parent = p;
+        n->parent = p_parent;
         n->color = 'r';
         if(p_parent->key < n->key) {
             p_parent->right = n;
@@ -54,7 +53,7 @@ void RBtree::insertfix(node *z)
             if(y !=NULL && y->color == 'r')
             {
                 z->parent->color = 'b';
-                //y->color = 'b';
+                y->color = 'b';
                 g->color = 'r';
                 z = g;
             }
@@ -340,23 +339,7 @@ void postorder(node* p, int indent)
         cout<< p->key << "\n ";
     }
 }
-/*
+
 int main()
 {
-    RBtree tree;
-
-    tree.insert(1848941308);
-    tree.insert(764856362);
-    tree.insert(539942263);
-    tree.insert(2037992462);
-    tree.insert(1383206370);
-    tree.insert(654304032);
-    tree.insert(193267934);
-    tree.insert(2011813845);
-    tree.insert(1292974003);
-    tree.insert(615996253);
-    tree.insert(742308901);
-    tree.del(193267934);
-    cout << tree.search(193267934) << endl;
-
-}*/
+}
