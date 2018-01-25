@@ -9,6 +9,7 @@ extern "C" {
 #include <iostream>
 #include <cstdlib>
 #include <chrono>
+#include <queue>
 
 using namespace std;
 using Clock=std::chrono::high_resolution_clock;
@@ -78,9 +79,9 @@ void dump_rbtree_data(int* insert_data, int insert_data_size, Alteration_action*
 }
 
 struct Benchmark_result {
-  int insert_time;
-  int alter_time;
-  int query_time;
+  long insert_time;
+  long alter_time;
+  long query_time;
 };
 
 Benchmark_result benchmark_rbtree_lua(int* insert_data, int insert_data_size, Alteration_action* alteration_data, int alteration_count, int* query_data, int query_count) {
@@ -162,7 +163,7 @@ Benchmark_result benchmark_rbtree_cpp(int* insert_data, int insert_data_size, Al
 }
 
 void benchmark_rbtree(int n, int seed) {
-  printf("Benchmarking n=%d, s=%d....\n", n, seed);
+  printf("Benchmarking rbtree n=%d, s=%d....\n", n, seed);
   int insert_data_size = n;
   int alteration_count = n * 0.2;
   int query_count = n * 0.2;
@@ -178,13 +179,140 @@ void benchmark_rbtree(int n, int seed) {
   Benchmark_result cpp_res = benchmark_rbtree_cpp(insert_data, insert_data_size, alteration_data, alteration_count, query_data, query_count);
 
   printf("Results (n=%d, s=%d):\n", n, seed);
-  printf("Insertion:\nlua: %d\ncpp: %d\n", lua_res.insert_time, cpp_res.insert_time);
-  printf("Alteration:\nlua: %d\ncpp: %d\n", lua_res.alter_time, cpp_res.alter_time);
-  printf("Query:\nlua: %d\ncpp: %d\n", lua_res.query_time, cpp_res.query_time);
+  printf("Insertion:\nlua: %lu\ncpp: %lu\n", lua_res.insert_time, cpp_res.insert_time);
+  printf("Alteration:\nlua: %lu\ncpp: %lu\n", lua_res.alter_time, cpp_res.alter_time);
+  printf("Query:\nlua: %lu\ncpp: %lu\n", lua_res.query_time, cpp_res.query_time);
 
   delete [] insert_data;
   delete [] alteration_data;
   delete [] query_data;
+}
+
+void create_prioqueue_data(int seed, int* insert_data, int insert_data_size, Alteration_action* alteration_data, int alteration_count) {
+  srand(seed);
+  for (int i = 0; i < insert_data_size; i++) {
+    insert_data[i] = rand();
+  }
+  int queue_content_size = insert_data_size;
+  for (int i = 0; i < alteration_count; i++) {
+    int type = rand() % 2;
+    if (type == 0 || queue_content_size == 0) { // we are adding a new, random value
+      alteration_data[i].action = insertion;
+      alteration_data[i].key = rand();
+      queue_content_size++;
+    } else { // we are popping a value
+      alteration_data[i].action = deletion;
+      alteration_data[i].key = 0; // we're not going to care about this
+      queue_content_size--;
+    }
+  }
+}
+
+Benchmark_result benchmark_prioqueue_lua(int* insert_data, int insert_data_size, Alteration_action* alteration_data, int alteration_count) {
+  lua_State *L = lua_create_context("priority-queue.lua");
+
+  lua_getglobal(L, "PriorityQueue");
+  lua_getfield(L, -1, "create");
+  lua_createtable(L, insert_data_size, 0);
+
+  cerr << "lua: starting benchmark\n";
+  auto t1 = Clock::now();
+  for (int i = 0; i < insert_data_size; i++) {
+    lua_pushinteger(L, i + 1);
+    lua_pushinteger(L, insert_data[i]);
+    lua_settable(L, -3);
+  }
+  lua_call(L, 1, 1);
+  cerr << "lua: insert done\n";
+  auto t2 = Clock::now();
+  for (int i = 0; i < alteration_count; i++) {
+    if (alteration_data[i].action == insertion) {
+      lua_getfield(L, -1, "push");
+      lua_pushvalue(L, -2);
+      lua_pushinteger(L, alteration_data[i].key);
+      lua_call(L, 2, 0);
+    } else {
+      lua_getfield(L, -1, "pop");
+      lua_pushvalue(L, -2);
+      lua_call(L, 1, 1);
+      lua_pop(L, 1); // we don't care what we just retrieved
+    }
+  }
+  cerr << "lua: alterations done\n";
+  auto t3 = Clock::now();
+  while (true) {
+    lua_getfield(L, -1, "empty");
+    lua_pushvalue(L, -2);
+    lua_call(L, 1, 1);
+    bool empty = lua_toboolean(L, -1);
+    lua_pop(L, 1);
+    if (empty) { break; }
+    lua_getfield(L, -1, "pop");
+    lua_pushvalue(L, -2);
+    lua_call(L, 1, 1);
+    lua_pop(L, 1);
+  }
+  cerr << "lua: clearing done\n";
+  auto t4 = Clock::now();
+  Benchmark_result res;
+  res.insert_time = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
+  res.alter_time = std::chrono::duration_cast<std::chrono::nanoseconds>(t3 - t2).count();
+  res.query_time = std::chrono::duration_cast<std::chrono::nanoseconds>(t4 - t3).count();
+
+  lua_close(L);
+  return res;
+}
+
+Benchmark_result benchmark_prioqueue_cpp(int* insert_data, int insert_data_size, Alteration_action* alteration_data, int alteration_count) {
+  std::priority_queue<int> queue;
+  cerr << "cpp: starting benchmark\n";
+  auto t1 = Clock::now();
+  for (int i = 0; i < insert_data_size; i++) {
+    queue.push(insert_data[i]);
+  }
+  cerr << "cpp: insert done\n";
+  auto t2 = Clock::now();
+  for (int i = 0; i < alteration_count; i++) {
+    if (alteration_data[i].action == insertion) {
+      queue.push(alteration_data[i].key);
+    } else {
+      queue.pop();
+    }
+  }
+  cerr << "cpp: alterations done\n";
+  auto t3 = Clock::now();
+  while (!queue.empty()) {
+    queue.pop();
+  }
+  cerr << "cpp: clearing done\n";
+  auto t4 = Clock::now();
+  Benchmark_result res;
+  res.insert_time = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
+  res.alter_time = std::chrono::duration_cast<std::chrono::nanoseconds>(t3 - t2).count();
+  res.query_time = std::chrono::duration_cast<std::chrono::nanoseconds>(t4 - t3).count();
+  return res;
+}
+
+void benchmark_prioqueue(int n, int seed) {
+  printf("Benchmarking prioqueue n=%d, s=%d....\n", n, seed);
+  int insert_data_size = n;
+  int alteration_count = n * 4;
+
+  int* insert_data = new int[insert_data_size];
+  Alteration_action* alteration_data = new Alteration_action[alteration_count];
+
+  create_prioqueue_data(seed, insert_data, insert_data_size, alteration_data, alteration_count);
+
+  Benchmark_result lua_res = benchmark_prioqueue_lua(insert_data, insert_data_size, alteration_data, alteration_count);
+  Benchmark_result cpp_res = benchmark_prioqueue_cpp(insert_data, insert_data_size, alteration_data, alteration_count);
+
+  printf("Results (n=%d, s=%d):\n", n, seed);
+  printf("Insertion:\nlua: %lu\ncpp: %lu\n", lua_res.insert_time, cpp_res.insert_time);
+  printf("Alteration:\nlua: %lu\ncpp: %lu\n", lua_res.alter_time, cpp_res.alter_time);
+  printf("Clearing:\nlua: %lu\ncpp: %lu\n", lua_res.query_time, cpp_res.query_time);
+
+  delete [] insert_data;
+  delete [] alteration_data;
 }
 
 int main(int argc, char* argv[])
@@ -197,7 +325,9 @@ int main(int argc, char* argv[])
     seed = time(0);
     printf("No seed passed as argument, using time(0) which is %d right now\n", seed);
   }
+
   srand(seed);
+  // Red-black tree
   int sizes[] = {10, 100, 1000, 10000, 100000, 1000000};
   int num = sizeof(sizes) / sizeof(int);
   int seeds[num];
@@ -207,4 +337,17 @@ int main(int argc, char* argv[])
   for(int i = 0; i < num; i++) {
     benchmark_rbtree(sizes[i], seeds[i]);
   }
+
+  srand(seed);
+  // priority queue
+  int sizes2[] = {10, 100, 1000, 10000, 100000, 1000000};
+  int num2 = sizeof(sizes2) / sizeof(int);
+  int seeds2[num2];
+  for (int i = 0; i < num2; i++) {
+    seeds2[i] = rand();
+  }
+  for(int i = 0; i < num2; i++) {
+    benchmark_prioqueue(sizes2[i], seeds2[i]);
+  }
+
 }

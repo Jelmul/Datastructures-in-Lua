@@ -114,6 +114,7 @@ void RBtree::del(int x)
      {
            if(p->key == x)
                found = 1;
+               // Where is the size decrease?
            if(found == 0)
            {
                  if(p->key < x)
