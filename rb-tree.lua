@@ -57,10 +57,12 @@ function RBtree:insert(i)
 end
 
 function RBtree:insertfix(z)
+    local g
+    local y
     while z ~= self.root and z.parent.color == RED do
         if z.parent == z.parent.parent.left then
-            local g = z.parent.parent
-            local y = g.right
+            g = z.parent.parent
+            y = g.right
             if y ~= nil and y.color == RED then
                 z.parent.color = BLACK
                 y.color = BLACK
@@ -77,8 +79,8 @@ function RBtree:insertfix(z)
                 self:rightrotate(g)
             end
         else
-            local g = z.parent.parent
-            local y = g.left
+            g = z.parent.parent
+            y = g.left
             if y ~= nil and y.color == RED then
                 z.parent.color = BLACK
                 y.color = BLACK
