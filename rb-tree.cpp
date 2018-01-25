@@ -54,7 +54,7 @@ void RBtree::insertfix(node *z)
             if(y !=NULL && y->color == 'r')
             {
                 z->parent->color = 'b';
-                //y->color = 'b';
+                y->color = 'b';
                 g->color = 'r';
                 z = g;
             }
@@ -115,6 +115,7 @@ void RBtree::del(int x)
      {
            if(p->key == x)
                found = 1;
+               // Where is the size decrease?
            if(found == 0)
            {
                  if(p->key < x)

@@ -64,6 +64,7 @@ function RBtree:insertfix(z)
             local y = g.right
             if y ~= nil and y.color == 'r' then
                 z.parent.color = 'b'
+                y.color = 'b'
                 g.color = 'r'
                 z = g
             else
@@ -114,7 +115,7 @@ function RBtree:del(i)
         end
 
         if not found then
-            if p.key < i then -- go to correct child
+            if p.key < i then
                 p = p.right
             else
                 p = p.left
@@ -181,8 +182,10 @@ function RBtree:delfix(p)
                 s.color = 'r'
                 p = p.parent
             else
-                if  s.right == nil or s.right.color == 'b' then
-                    s.left.color = 'b'
+                if s.right == nil or s.right.color == 'b' then
+                    if s.left ~= nil then
+                        s.left.color = 'b'
+                    end
                     s.color = 'r'
                     self:rightrotate(s)
                     s = p.parent.right
@@ -209,7 +212,9 @@ function RBtree:delfix(p)
                 p = p.parent
             else
                 if s.left == nil or s.left.color == 'b' then
-                    s.right.color = 'b'
+                    if s.right~= nil then
+                        s.right.color = 'b'
+                    end
                     s.color = 'r'
                     self:leftrotate(s)
                     s = p.parent.left
@@ -244,7 +249,7 @@ function RBtree:leftrotate(p)
         end
         if p.parent == nil then
             self.root = y
-            self.root.parent = nil -- fix
+            self.root.parent = nil
         else
             if p == p.parent.left then
                 p.parent.left = y
@@ -305,7 +310,6 @@ end
 
 function RBtree:search(x)
     if self.root == nil then
-      print('root == nil')
         return false
     end
     local p = self.root
@@ -315,14 +319,13 @@ function RBtree:search(x)
             return true
         end
         if not found then
-            if p.key < x then -- go to correct child
+            if p.key < x then
                 p = p.right
             else
                 p = p.left
             end
         end
     end
-    --print(string.format("%s not found", x))
     return false
 end
 
