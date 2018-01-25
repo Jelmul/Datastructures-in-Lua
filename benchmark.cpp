@@ -163,7 +163,7 @@ Benchmark_result benchmark_rbtree_cpp(int* insert_data, int insert_data_size, Al
 }
 
 void benchmark_rbtree(int n, int seed) {
-  printf("Benchmarking rbtree n=%d, s=%d....\n", n, seed);
+  fprintf(stderr, "Benchmarking rbtree n=%d, s=%d....\n", n, seed);
   int insert_data_size = n;
   int alteration_count = n * 0.2;
   int query_count = n * 0.2;
@@ -178,10 +178,14 @@ void benchmark_rbtree(int n, int seed) {
   Benchmark_result lua_res = benchmark_rbtree_lua(insert_data, insert_data_size, alteration_data, alteration_count, query_data, query_count);
   Benchmark_result cpp_res = benchmark_rbtree_cpp(insert_data, insert_data_size, alteration_data, alteration_count, query_data, query_count);
 
-  printf("Results (n=%d, s=%d):\n", n, seed);
+  /*printf("Results (n=%d, s=%d):\n", n, seed);
   printf("Insertion:\nlua: %lu\ncpp: %lu\n", lua_res.insert_time, cpp_res.insert_time);
   printf("Alteration:\nlua: %lu\ncpp: %lu\n", lua_res.alter_time, cpp_res.alter_time);
   printf("Query:\nlua: %lu\ncpp: %lu\n", lua_res.query_time, cpp_res.query_time);
+  */
+  printf(",%lu,%lu", lua_res.insert_time, cpp_res.insert_time);
+  printf(",%lu,%lu", lua_res.alter_time, cpp_res.alter_time);
+  printf(",%lu,%lu", lua_res.query_time, cpp_res.query_time);
 
   delete [] insert_data;
   delete [] alteration_data;
@@ -279,7 +283,6 @@ Benchmark_result benchmark_prioqueue_cpp(int* insert_data, int insert_data_size,
       queue.pop();
     }
   }
-  cerr << "cpp: alterations done\n";
   auto t3 = Clock::now();
   while (!queue.empty()) {
     queue.pop();
@@ -294,7 +297,7 @@ Benchmark_result benchmark_prioqueue_cpp(int* insert_data, int insert_data_size,
 }
 
 void benchmark_prioqueue(int n, int seed) {
-  printf("Benchmarking prioqueue n=%d, s=%d....\n", n, seed);
+  fprintf(stderr, "Benchmarking prioqueue n=%d, s=%d....\n", n, seed);
   int insert_data_size = n;
   int alteration_count = n * 4;
 
@@ -306,10 +309,14 @@ void benchmark_prioqueue(int n, int seed) {
   Benchmark_result lua_res = benchmark_prioqueue_lua(insert_data, insert_data_size, alteration_data, alteration_count);
   Benchmark_result cpp_res = benchmark_prioqueue_cpp(insert_data, insert_data_size, alteration_data, alteration_count);
 
-  printf("Results (n=%d, s=%d):\n", n, seed);
+  /*printf("Results (n=%d, s=%d):\n", n, seed);
   printf("Insertion:\nlua: %lu\ncpp: %lu\n", lua_res.insert_time, cpp_res.insert_time);
   printf("Alteration:\nlua: %lu\ncpp: %lu\n", lua_res.alter_time, cpp_res.alter_time);
   printf("Clearing:\nlua: %lu\ncpp: %lu\n", lua_res.query_time, cpp_res.query_time);
+  */
+  printf(",%lu,%lu", lua_res.insert_time, cpp_res.insert_time);
+  printf(",%lu,%lu", lua_res.alter_time, cpp_res.alter_time);
+  printf(",%lu,%lu", lua_res.query_time, cpp_res.query_time);
 
   delete [] insert_data;
   delete [] alteration_data;
@@ -317,37 +324,51 @@ void benchmark_prioqueue(int n, int seed) {
 
 int main(int argc, char* argv[])
 {
-  int seed;
+  int seed = time(0);
   if (argc > 1) {
     seed = atoi(argv[1]);
-    printf("Seed passed as argument: %d\n", seed);
+    fprintf(stderr, "Seed passed as argument: %d\n", seed);
   } else {
-    seed = time(0);
-    printf("No seed passed as argument, using time(0) which is %d right now\n", seed);
+    fprintf(stderr, "No seed passed as argument, using time(0) which is %d right now\n", seed);
+  }
+
+  int repcount = 1;
+  if (argc > 2) {
+    repcount = atoi(argv[2]);
+    fprintf(stderr, "Repcount passed as argument: %d\n", repcount);
+  } else {
+    fprintf(stderr, "No repcount passed as argument, using 1\n");
   }
 
   srand(seed);
   // Red-black tree
   int sizes[] = {10, 100, 1000, 10000, 100000, 1000000};
   int num = sizeof(sizes) / sizeof(int);
-  int seeds[num];
-  for (int i = 0; i < num; i++) {
-    seeds[i] = rand();
-  }
-  for(int i = 0; i < num; i++) {
-    benchmark_rbtree(sizes[i], seeds[i]);
-  }
 
-  srand(seed);
   // priority queue
   int sizes2[] = {10, 100, 1000, 10000, 100000, 1000000};
   int num2 = sizeof(sizes2) / sizeof(int);
-  int seeds2[num2];
-  for (int i = 0; i < num2; i++) {
-    seeds2[i] = rand();
-  }
-  for(int i = 0; i < num2; i++) {
-    benchmark_prioqueue(sizes2[i], seeds2[i]);
-  }
 
+  printf("Repetition");
+  for (int i = 0; i < num; i++) {
+    printf(",rb %d lua insert,rb %d cpp insert", sizes[i], sizes[i]);
+    printf(",rb %d lua alter,rb %d cpp alter", sizes[i], sizes[i]);
+    printf(",rb %d lua clear,rb %d cpp clear", sizes[i], sizes[i]);
+  }
+  for (int i = 0; i < num2; i++) {
+    printf(",pq %d lua insert,pq %d cpp insert", sizes2[i], sizes2[i]);
+    printf(",pq %d lua alter,pq %d cpp alter", sizes2[i], sizes2[i]);
+    printf(",pq %d lua clear,pq %d cpp clear", sizes2[i], sizes2[i]);
+  }
+  printf("\n");
+  for(int r = 0; r < repcount; r++) {
+    printf("%d", r);
+    for(int i = 0; i < num; i++) {
+      benchmark_rbtree(sizes[i], rand());
+    }
+    for(int i = 0; i < num2; i++) {
+      benchmark_prioqueue(sizes2[i], rand());
+    }
+    printf("\n");
+  }
 }
