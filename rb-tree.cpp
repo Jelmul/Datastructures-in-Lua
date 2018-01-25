@@ -341,6 +341,3 @@ void postorder(node* p, int indent)
     }
 }
 
-int main()
-{
-}
