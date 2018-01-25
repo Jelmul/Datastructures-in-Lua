@@ -1,27 +1,24 @@
-Node = {}
+Node = {key = nil, parent = nil, color = nil, left = nil, right = nil}
 Node.__index = Node
 
 function Node.new(key)
     local node = {}
     setmetatable(node, Node)
     node.key = key
-    node.parent = nil
-    node.color = nil
-    node.left = nil
-    node.right = nil
     return node
 end
 
-RBtree = {}
+RBtree = {root = nil, size = 0}
 RBtree.__index = RBtree
 
 function RBtree.new()
     local tree = {}
     setmetatable(tree, RBtree)
-    tree.root = nil
-    tree.size = 0
     return tree
 end
+
+local RED = true
+local BLACK = false
 
 function RBtree:insert(i)
     local n = Node:new()
@@ -30,7 +27,7 @@ function RBtree:insert(i)
     n.right = nil
     if self.root == nil then
         self.root = n
-        n.color = 'b'
+        n.color = BLACK
         n.parent = nil
     else
         local p = self.root
@@ -46,7 +43,7 @@ function RBtree:insert(i)
         
         p = parent
         n.parent = p
-        n.color = 'r'
+        n.color = RED
         if p.key < n.key then
             p.right = n
         else
@@ -58,14 +55,14 @@ function RBtree:insert(i)
 end
 
 function RBtree:insertfix(z)
-    while z ~= self.root and z.parent.color == 'r' do
+    while z ~= self.root and z.parent.color == RED do
         if z.parent == z.parent.parent.left then
             local g = z.parent.parent
             local y = g.right
-            if y ~= nil and y.color == 'r' then
-                z.parent.color = 'b'
-                y.color = 'b'
-                g.color = 'r'
+            if y ~= nil and y.color == RED then
+                z.parent.color = BLACK
+                y.color = BLACK
+                g.color = RED
                 z = g
             else
                 if z.parent.right == z then
@@ -73,17 +70,17 @@ function RBtree:insertfix(z)
                     self:leftrotate(z)
                 end
 
-                z.parent.color = 'b'
-                g.color = 'r'
+                z.parent.color = BLACK
+                g.color = RED
                 self:rightrotate(g)
             end
         else
             local g = z.parent.parent
             local y = g.left
-            if y ~= nil and y.color == 'r' then
-                z.parent.color = 'b'
-                y.color = 'b'
-                g.color = 'r'
+            if y ~= nil and y.color == RED then
+                z.parent.color = BLACK
+                y.color = BLACK
+                g.color = RED
                 z = g
             else
                 if z.parent.left == z then
@@ -91,13 +88,13 @@ function RBtree:insertfix(z)
                     self:rightrotate(z)
                 end
 
-                z.parent.color = 'b'
-                g.color = 'r'
+                z.parent.color = BLACK
+                g.color = RED
                 self:leftrotate(g)
             end
         end
     end
-    self.root.color = 'b'
+    self.root.color = BLACK
 end
 
 function RBtree:del(i)
@@ -155,7 +152,7 @@ function RBtree:del(i)
         p.color = y.color
         p.key = y.key
     end
-    if y.color == 'b' then
+    if y.color == BLACK then
         self:delfix(q)
     end
 end
@@ -166,70 +163,70 @@ function RBtree:delfix(p)
     end
     
     local s = nil
-    while p~=nil and p ~= self.root and p.color == 'b' do
+    while p~=nil and p ~= self.root and p.color == BLACK do
         if p.parent.left == p then
             s = p.parent.right
-            if s~=nil and s.color == 'r' then
-                s.color = 'b'
-                p.parent.color = 'r'
+            if s~=nil and s.color == RED then
+                s.color = BLACK
+                p.parent.color = RED
                 self:leftrotate(p.parent)
                 s = p.parent.right
             end
             if s==nil then
                 break
             end
-            if (s.right == nil or s.right.color == 'b') and (s.left == nil or s.left.color == 'b') then
-                s.color = 'r'
+            if (s.right == nil or s.right.color == BLACK) and (s.left == nil or s.left.color == BLACK) then
+                s.color = RED
                 p = p.parent
             else
-                if s.right == nil or s.right.color == 'b' then
+                if s.right == nil or s.right.color == BLACK then
                     if s.left ~= nil then
-                        s.left.color = 'b'
+                        s.left.color = BLACK
                     end
-                    s.color = 'r'
+                    s.color = RED
                     self:rightrotate(s)
                     s = p.parent.right
                 end
                 s.color = p.parent.color
-                p.parent.color = 'b'
-                s.right.color = 'b'
+                p.parent.color = BLACK
+                s.right.color = BLACK
                 self:leftrotate(p.parent)
                 p = self.root
             end
         else
             s = p.parent.left
-            if s ~= nil and s.color == 'r' then
-                s.color = 'b'
-                p.parent.color = 'r'
+            if s ~= nil and s.color == RED then
+                s.color = BLACK
+                p.parent.color = RED
                 self:rightrotate(p.parent)
                 s = p.parent.left
             end
             if s==nil then
                 break
             end
-            if (s.left == nil or s.left.color == 'b') and (s.right == nil or s.right.color == 'b') then
-                s.color = 'r'
+            if (s.left == nil or s.left.color == BLACK) and (s.right == nil or s.right.color == BLACK) then
+                s.color = RED
                 p = p.parent
             else
-                if s.left == nil or s.left.color == 'b' then
+                if s.left == nil or s.left.color == BLACK then
                     if s.right~= nil then
-                        s.right.color = 'b'
+                        s.right.color = BLACK
                     end
-                    s.color = 'r'
+                    s.color = RED
                     self:leftrotate(s)
                     s = p.parent.left
                 end
                 s.color = p.parent.color
-                p.parent.color = 'b'
+                p.parent.color = BLACK
                 if s.left ~= nil then
-                    s.left.color = 'b'
+                    s.left.color = BLACK
                 end
                 self:rightrotate(p.parent)
                 p = self.root
             end
         end
-        p.color = 'b'
-        self.root.color = 'b'
+        p.color = BLACK
+        self.root.color = BLACK
     end
 end
 

@@ -28,3 +28,6 @@ class RBtree
     void del(int);
     bool search(int);
 };
+
+const bool RED = true;
+const bool BLACK = false;

@@ -14,7 +14,7 @@ void RBtree::insert(int i)
     if(root == NULL)
     {
         root = n;
-        n->color = 'b';
+        n->color = BLACK;
         n->parent = NULL;
     }
     else
@@ -31,7 +31,7 @@ void RBtree::insert(int i)
         }
 
         n->parent = p_parent;
-        n->color = 'r';
+        n->color = RED;
         if(p_parent->key < n->key) {
             p_parent->right = n;
         } else {
@@ -44,17 +44,17 @@ void RBtree::insert(int i)
 
 void RBtree::insertfix(node *z)
 {
-    while(z != root && z->parent->color == 'r')
+    while(z != root && z->parent->color == RED)
     {
         if(z->parent == z->parent->parent->left)
         {
             node *g = z->parent->parent;
             node *y = g->right;
-            if(y !=NULL && y->color == 'r')
+            if(y !=NULL && y->color == RED)
             {
-                z->parent->color = 'b';
-                y->color = 'b';
-                g->color = 'r';
+                z->parent->color = BLACK;
+                y->color = BLACK;
+                g->color = RED;
                 z = g;
             }
             else
@@ -65,8 +65,8 @@ void RBtree::insertfix(node *z)
                     leftrotate(z);
                 }
 
-                z->parent->color = 'b';
-                g->color = 'r';
+                z->parent->color = BLACK;
+                g->color = RED;
                 rightrotate(g);
             }
         }
@@ -75,11 +75,11 @@ void RBtree::insertfix(node *z)
             node *g = z->parent->parent;
             node *y = g->left;
 
-            if(y !=NULL && y->color == 'r')
+            if(y !=NULL && y->color == RED)
             {
-                z->parent->color = 'b';
-                y->color = 'b';
-                g->color = 'r';
+                z->parent->color = BLACK;
+                y->color = BLACK;
+                g->color = RED;
                 z = g;
             }
             else
@@ -90,13 +90,13 @@ void RBtree::insertfix(node *z)
                     rightrotate(z);
                 }
 
-                z->parent->color = 'b';
-                g->color = 'r';
+                z->parent->color = BLACK;
+                g->color = RED;
                 leftrotate(g);
             }
         }
     }
-    root->color='b';
+    root->color=BLACK;
 }
 
 void RBtree::del(int x)
@@ -157,7 +157,7 @@ void RBtree::del(int x)
              p->color = y->color;
              p->key = y->key;
          }
-         if(y->color =='b')
+         if(y->color ==BLACK)
              delfix(q);
      }
 }
@@ -165,69 +165,69 @@ void RBtree::del(int x)
 void RBtree::delfix(node *p)
 {
     node *s;
-    while(p != NULL && p != root && p->color == 'b')
+    while(p != NULL && p != root && p->color == BLACK)
     {
         if(p->parent->left == p){
             s = p->parent->right;
-            if(s != NULL && s->color == 'r'){
-                s->color = 'b';
-                p->parent->color = 'r';
+            if(s != NULL && s->color == RED){
+                s->color = BLACK;
+                p->parent->color = RED;
                 leftrotate(p->parent);
                 s = p->parent->right;
             }
             if(s == NULL){
                 break;
             }
-            if((s->right == NULL || s->right->color == 'b') && (s->left == NULL || s->left->color == 'b')){
-                s->color = 'r';
+            if((s->right == NULL || s->right->color == BLACK) && (s->left == NULL || s->left->color == BLACK)){
+                s->color = RED;
                 p = p->parent;
             } else {
-                if(s->right == NULL || s->right->color == 'b') {
+                if(s->right == NULL || s->right->color == BLACK) {
                     if (s->left != NULL )
-                        s->left->color = 'b';
-                    s->color = 'r';
+                        s->left->color = BLACK;
+                    s->color = RED;
                     rightrotate(s);
                     s = p->parent->right;
                 }
                 s->color = p->parent->color;
-                p->parent->color = 'b';
-                s->right->color = 'b';
+                p->parent->color = BLACK;
+                s->right->color = BLACK;
                 leftrotate(p->parent);
                 p=root;
             }
         } else {
             s = p->parent->left;
-            if(s != NULL && s->color == 'r') {
-                s->color = 'b';
-                p->parent->color = 'r';
+            if(s != NULL && s->color == RED) {
+                s->color = BLACK;
+                p->parent->color = RED;
                 rightrotate(p->parent);
                 s = p->parent->left;
             }
             if(s == NULL){
                 break;
             }
-            if((s->left == NULL || s->left->color == 'b') && (s->right == NULL || s->right->color == 'b'))
+            if((s->left == NULL || s->left->color == BLACK) && (s->right == NULL || s->right->color == BLACK))
             {
-                s->color = 'r';
+                s->color = RED;
                 p = p->parent;
             } else {
-                if(s->left == NULL || s->left->color == 'b') {
+                if(s->left == NULL || s->left->color == BLACK) {
                     if (s->right != NULL)
-                        s->right->color = 'b';
-                    s->color = 'r';
+                        s->right->color = BLACK;
+                    s->color = RED;
                     leftrotate(s);
                     s = p->parent->left;
                 }
                 s->color = p->parent->color;
-                p->parent->color = 'b';
+                p->parent->color = BLACK;
                 if(s->left != NULL)
-                    s->left->color = 'b';
+                    s->left->color = BLACK;
                 rightrotate(p->parent);
                 p = root;
             }
         }
-        p->color = 'b';
-        root->color = 'b';
+        p->color = BLACK;
+        root->color = BLACK;
     }
 }
 
