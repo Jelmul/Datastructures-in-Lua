@@ -22,7 +22,7 @@ function PriorityQueue:top()
 end
 
 function PriorityQueue:empty()
-    return table.getn(self.array) == 0
+    return #self.array == 0
 end
 
 -- Helper functions
@@ -58,10 +58,10 @@ end
 
 function sift_down(array, i)
     j = i
-    if left(i) <= table.getn(array) and array[left(i)] > array[j] then
+    if left(i) <= #array and array[left(i)] > array[j] then
         j = left(i)
     end
-    if right(i) <= table.getn(array) and array[right(i)] > array[j] then
+    if right(i) <= #array and array[right(i)] > array[j] then
         j = right(i)
     end
     if j ~= i then
@@ -72,7 +72,7 @@ end
 
 -- Heap functions
 function make_heap(array)
-    p = divide(table.getn(array), 2)
+    p = divide(#array, 2)
     while p ~= 0 do
         sift_down(array, p)
         p = p - 1
@@ -80,15 +80,15 @@ function make_heap(array)
 end
 
 function push_heap(array, k)
-    i = table.getn(array) + 1
+    i = #array + 1
     array[i] = k
     sift_up(array, i)
 end
 
 function pop_heap(array)
     element = array[1]
-    array[1] = array[table.getn(array)]
-    array[table.getn(array)] = nil
+    array[1] = array[#array]
+    array[#array] = nil
     sift_down(array, 1)
     return element
 end
