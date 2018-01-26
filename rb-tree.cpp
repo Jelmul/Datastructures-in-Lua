@@ -159,6 +159,7 @@ void RBtree::del(int x)
          }
          if(y->color ==BLACK)
              delfix(q);
+        size--;
      }
 }
 
@@ -340,4 +341,3 @@ void postorder(node* p, int indent)
         cout<< p->key << "\n ";
     }
 }
-
